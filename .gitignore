@@ -1,0 +1,6 @@
+# Local outputs and secrets; public_results/ is intentionally versioned
+saved_forecasts.csv
+.env
+.streamlit/secrets.toml
+__pycache__/
+*.pyc
