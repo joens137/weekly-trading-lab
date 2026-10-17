@@ -1,0 +1,10 @@
+as_of,strategy,weights,holding,predicted,starting_value,forecast_value,status,actual,actual_value,error_pp,direction_correct
+2026-10-16,Diversified mix,"{'SPY': 0.4, 'QQQ': 0.2, 'IWM': 0.1, 'GLD': 0.15, 'TLT': 0.15}","SPY: 40%, QQQ: 20%, IWM: 10%, GLD: 15%, TLT: 15%",0.0024550373989516163,100.0,100.24550373989516,Pending,,,,
+2026-10-16,Dual momentum,{'QQQ': 1.0},QQQ: 100%,0.007112126508874558,100.0,100.71121265088745,Pending,,,,
+2026-10-16,ML ETF picker,{'QQQ': 1.0},QQQ: 100%,0.007605867349086782,100.0,100.76058673490869,Pending,,,,
+2026-10-16,ML ensemble,{'QQQ': 1.0},QQQ: 100%,0.0057595471445037105,100.0,100.57595471445038,Pending,,,,
+2026-10-16,Mean reversion,{},CASH,0.0,100.0,100.0,Pending,,,,
+2026-10-16,Momentum rotation,{'SPY': 1.0},SPY: 100%,0.00051201852249394,100.0,100.05120185224938,Pending,,,,
+2026-10-16,QQQ hold,{'QQQ': 1.0},QQQ: 100%,0.003913226939920639,100.0,100.39132269399207,Pending,,,,
+2026-10-16,SPY hold,{'SPY': 1.0},SPY: 100%,0.0007767027641253689,100.0,100.07767027641255,Pending,,,,
+2026-10-16,Volatility adjusted,"{'SPY': 0.4, 'QQQ': 0.36065216453864185}","SPY: 40%, QQQ: 36%",0.002617338907169631,100.0,100.26173389071695,Pending,,,,
