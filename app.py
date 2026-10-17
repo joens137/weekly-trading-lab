@@ -4,6 +4,7 @@ import streamlit as st
 import yfinance as yf
 from engine import (TICKERS,STRATEGIES,normalize_data,features_for,get_predictions,
                     weights_for,run_backtest,performance,score_log)
+from dual_momentum_analysis import render_dual_momentum
 
 st.set_page_config(page_title='Weekly Trading Lab | Research Edition',page_icon='📈',layout='wide')
 st.markdown('''<style>.block-container{max-width:1500px;padding-top:1.7rem}
@@ -75,7 +76,7 @@ m3.metric('SPY: same holdout',f"{spy_test['Total return %']:+.1f}%")
 m4.metric('Holdout prediction accuracy',f"{test_pick['Weekly accuracy %']:.0f}%")
 st.caption('The selected strategy is ranked by validation-period return, then evaluated on the later holdout. Repeatedly changing settings after seeing holdout performance makes it less independent.')
 
-tabs=st.tabs(['🏆 Strategy competition','🎯 Prediction accuracy','🧪 Validation & holdout','🔮 Next-week forecasts','💵 Paper portfolios','📖 Methods'])
+tabs=st.tabs(['🏆 Strategy competition','🔎 Dual Momentum','🎯 Prediction accuracy','🧪 Validation & holdout','🔮 Next-week forecasts','💵 Paper portfolios','📖 Methods'])
 with tabs[0]:
     st.subheader('Historical portfolio growth')
     pivot=curves.pivot(index='exit_date',columns='strategy',values='equity')
@@ -84,6 +85,8 @@ with tabs[0]:
     st.dataframe(board,hide_index=True,use_container_width=True)
     st.download_button('Download complete backtest',bt.to_csv(index=False),'research_backtest.csv','text/csv')
 with tabs[1]:
+    render_dual_momentum(bt,opens,closes,stake,bps)
+with tabs[2]:
     st.subheader('Forecasts versus reality')
     strategy=st.selectbox('View strategy',list(STRATEGIES))
     s=bt[bt.strategy==strategy].copy()
@@ -96,7 +99,7 @@ with tabs[1]:
     st.write('The always-up and predict-zero lines are simple forecasting baselines. They are not guaranteed investment strategies.')
     st.dataframe(s[['signal_date','entry_date','exit_date','holding','predicted','gross','actual','error_pp','direction_correct']],
                  hide_index=True,use_container_width=True)
-with tabs[2]:
+with tabs[3]:
     st.subheader('Chronological evaluation')
     st.write('The trading model is re-trained using only labels observable at each historical signal date. The performance display is divided into development, validation, and later holdout segments.')
     for phase in ['Development','Validation','Holdout']:
@@ -106,7 +109,7 @@ with tabs[2]:
         st.dataframe(frame[['Strategy','Total return %','Weekly accuracy %','Prediction MAE (pp)','Max drawdown %','Sharpe (approx)']],
                      hide_index=True,use_container_width=True)
     st.warning('Only select settings and strategies using development and validation. Changing the model after seeing the holdout can overfit the holdout.')
-with tabs[3]:
+with tabs[4]:
     st.subheader('Lock in forecasts before future outcomes are known')
     try:
         choices=current_choices(opens,closes)
@@ -144,14 +147,14 @@ with tabs[3]:
             st.dataframe(scored,hide_index=True,use_container_width=True)
             st.download_button('Download saved forecast journal',scored.to_csv(index=False),'forecast_journal.csv','text/csv')
         except Exception as e:st.warning(f'Could not read saved forecast file: {e}')
-with tabs[4]:
+with tabs[5]:
     st.subheader('Virtual portfolio competition')
     st.write(f'Every strategy begins with **${stake:,.2f}**. Results compound non-overlapping five-session trades independently.')
     st.bar_chart(board.set_index('Strategy')['Final $'])
     st.dataframe(board[['Strategy','Final $','Total return %','Max drawdown %','Sharpe (approx)','Profit factor','Win rate %']],
                  hide_index=True,use_container_width=True)
     st.caption('Trading costs are simulated from changes in target weights. Fractional shares and cash at zero yield are assumed.')
-with tabs[5]:
+with tabs[6]:
     st.markdown('''
 ### Strategy definitions
 - **SPY / QQQ hold:** Long-only market baselines; buy and remain invested.
