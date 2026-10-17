@@ -1,4 +1,5 @@
 from pathlib import Path
+import json
 import pandas as pd
 import streamlit as st
 import yfinance as yf
@@ -76,7 +77,7 @@ m3.metric('SPY: same holdout',f"{spy_test['Total return %']:+.1f}%")
 m4.metric('Holdout prediction accuracy',f"{test_pick['Weekly accuracy %']:.0f}%")
 st.caption('The selected strategy is ranked by validation-period return, then evaluated on the later holdout. Repeatedly changing settings after seeing holdout performance makes it less independent.')
 
-tabs=st.tabs(['🏆 Strategy competition','🔎 Dual Momentum','🎯 Prediction accuracy','🧪 Validation & holdout','🔮 Next-week forecasts','💵 Paper portfolios','📖 Methods'])
+tabs=st.tabs(['🏆 Strategy competition','🔎 Dual Momentum','📡 Synced research','🎯 Prediction accuracy','🧪 Validation & holdout','🔮 Next-week forecasts','💵 Paper portfolios','📖 Methods'])
 with tabs[0]:
     st.subheader('Historical portfolio growth')
     pivot=curves.pivot(index='exit_date',columns='strategy',values='equity')
@@ -87,6 +88,33 @@ with tabs[0]:
 with tabs[1]:
     render_dual_momentum(bt,opens,closes,stake,bps)
 with tabs[2]:
+    st.subheader('Automated GitHub research snapshots')
+    st.write('These results are generated independently by a scheduled GitHub Actions job, not taken from this browser session. The public files contain simulated research results only.')
+    public=HERE/'public_results'
+    statusfile=public/'sync_status.json'
+    if not statusfile.exists():
+        st.info('No published snapshot yet. After this feature is merged, run the "Publish weekly research results" workflow once from GitHub Actions. Weekly updates are scheduled thereafter.')
+    else:
+        try:
+            status=json.loads(statusfile.read_text(encoding='utf-8'))
+            a,b,c=st.columns(3)
+            a.metric('Last synced (UTC)',str(status.get('generated_at_utc','Unknown')))
+            b.metric('Latest market date',str(status.get('latest_market_date','Unknown')))
+            c.metric('Scored forward forecasts',str(status.get('forecasts_scored','Unknown')))
+            st.caption('Standardized run: 104 weeks, $100 per strategy, estimated five-basis-point transaction costs and trained ML models.')
+            for filename,heading in [('strategy_leaderboard.csv','Published strategy leaderboard'),
+                                      ('dual_momentum_trades.csv','Published dual momentum trades'),
+                                      ('weekly_forecasts.csv','Saved forward forecasts and scored outcomes')]:
+                path=public/filename
+                if path.exists():
+                    data=pd.read_csv(path)
+                    st.markdown(f'#### {heading}')
+                    st.dataframe(data.tail(200) if filename!='strategy_leaderboard.csv' else data,hide_index=True,use_container_width=True)
+                    st.download_button(f'Download {filename}',path.read_bytes(),file_name=filename,mime='text/csv',key=f'sync_{filename}')
+        except Exception as e:
+            st.warning(f'Could not display synced research data: {e}')
+    st.caption('Scheduled workflows can run late or fail. Review the GitHub Actions history if the timestamp is old. Forecast snapshots are immutable for a given market date and strategy; historical backtests recalculate on a moving data window.')
+with tabs[3]:
     st.subheader('Forecasts versus reality')
     strategy=st.selectbox('View strategy',list(STRATEGIES))
     s=bt[bt.strategy==strategy].copy()
@@ -99,7 +127,7 @@ with tabs[2]:
     st.write('The always-up and predict-zero lines are simple forecasting baselines. They are not guaranteed investment strategies.')
     st.dataframe(s[['signal_date','entry_date','exit_date','holding','predicted','gross','actual','error_pp','direction_correct']],
                  hide_index=True,use_container_width=True)
-with tabs[3]:
+with tabs[4]:
     st.subheader('Chronological evaluation')
     st.write('The trading model is re-trained using only labels observable at each historical signal date. The performance display is divided into development, validation, and later holdout segments.')
     for phase in ['Development','Validation','Holdout']:
@@ -109,7 +137,7 @@ with tabs[3]:
         st.dataframe(frame[['Strategy','Total return %','Weekly accuracy %','Prediction MAE (pp)','Max drawdown %','Sharpe (approx)']],
                      hide_index=True,use_container_width=True)
     st.warning('Only select settings and strategies using development and validation. Changing the model after seeing the holdout can overfit the holdout.')
-with tabs[4]:
+with tabs[5]:
     st.subheader('Lock in forecasts before future outcomes are known')
     try:
         choices=current_choices(opens,closes)
@@ -147,14 +175,14 @@ with tabs[4]:
             st.dataframe(scored,hide_index=True,use_container_width=True)
             st.download_button('Download saved forecast journal',scored.to_csv(index=False),'forecast_journal.csv','text/csv')
         except Exception as e:st.warning(f'Could not read saved forecast file: {e}')
-with tabs[5]:
+with tabs[6]:
     st.subheader('Virtual portfolio competition')
     st.write(f'Every strategy begins with **${stake:,.2f}**. Results compound non-overlapping five-session trades independently.')
     st.bar_chart(board.set_index('Strategy')['Final $'])
     st.dataframe(board[['Strategy','Final $','Total return %','Max drawdown %','Sharpe (approx)','Profit factor','Win rate %']],
                  hide_index=True,use_container_width=True)
     st.caption('Trading costs are simulated from changes in target weights. Fractional shares and cash at zero yield are assumed.')
-with tabs[6]:
+with tabs[7]:
     st.markdown('''
 ### Strategy definitions
 - **SPY / QQQ hold:** Long-only market baselines; buy and remain invested.
