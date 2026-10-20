@@ -1,13 +1,13 @@
 {
-  "generated_at_utc": "2026-10-17T13:48:49+00:00",
-  "latest_market_date": "2026-10-16",
+  "generated_at_utc": "2026-10-20T01:47:27+00:00",
+  "latest_market_date": "2026-10-19",
   "historical_weeks_requested": 104,
   "historical_weeks_evaluated": 104,
   "starting_dollars_per_strategy": 100.0,
   "cost_basis_points": 5,
   "full_ml_enabled": true,
   "forecasts_scored": 0,
-  "forecasts_pending": 9,
+  "forecasts_pending": 18,
   "source": "GitHub Actions scheduled independent research replay",
   "disclaimer": "Public virtual research results, not actual Streamlit sessions or real trades."
 }
